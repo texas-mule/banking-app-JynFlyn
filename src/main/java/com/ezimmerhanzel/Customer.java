@@ -2,12 +2,12 @@ package com.ezimmerhanzel;
 
 //come back to this when you are finished with person
 
-public class Customer{
+public class Customer {
 
     public static void createTransaction(int value, String type, int account1, int account2, String username) {
         if (value >= 0 & DatabaseManager.checkAccount(account1) & (DatabaseManager.checkAccount(account2) | (account2 == 0))) {
             Transaction.create(value, type, account1, account2);
-        } else if (value < 0){
+        } else if (value < 0) {
             System.out.println("Cannot Process Negative Amounts");
         } else if (!DatabaseManager.hasAccount(account1, username)) {
             System.out.println("Invalid account Number");
@@ -17,9 +17,9 @@ public class Customer{
     }
 
     public static void requestJointAccount(String username, int accountNumber) {
-        if(DatabaseManager.checkAccount(accountNumber) & DatabaseManager.jointUserCheck(accountNumber, username)) {
+        if (DatabaseManager.checkAccount(accountNumber) & DatabaseManager.jointUserCheck(accountNumber, username)) {
             DatabaseManager.addJointUser(username, accountNumber);
-        }else{
+        } else {
             System.out.println("An error has occurred with the Account Number that you have entered.");
         }
     }
@@ -33,7 +33,7 @@ public class Customer{
     }
 
     public static void listOptions() {
-        System.out.println("Customer options:\n   Deposit\n   Withdraw\n   Transfer Funds\n" +
-                "   Create new Account\n   Request access to Account\n   List Accounts");
+        System.out.println("Customer options:\n  1 Deposit\n  2 Withdraw\n  3 Transfer Funds\n" +
+                "  4 Create new Account\n  5 Request access to Account\n  6 List Accounts");
     }
 }

@@ -69,7 +69,7 @@ public class Bank {
                 break;
             case "8":
             case "create transaction":
-                System.out.println("Transaction Amount, Transaction Type, Account, Receiving Account (if applicable):");
+                System.out.print("Transaction Amount, Transaction Type, Account, Receiving Account (if applicable):");
                 Admin.createTransaction(scanner.useDelimiter("[ \n]").next(), scanner.skip(" ").next(),
                         scanner.skip(" ").next(), scanner.nextLine());
                 break;

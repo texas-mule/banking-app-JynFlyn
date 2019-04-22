@@ -150,11 +150,8 @@ public class DatabaseManager {
 
     public static boolean hasAccount(int accountNumber, String username) {
         String command = "SELECT * FROM accounts WHERE accountNumber = ";
-        if(getResult(command + accountNumber, "owner1").isEmpty() &
-                getResult(command + accountNumber, "owner2").isEmpty()) {
-            return true;
-        }
-        return false;
+        return getResult(command + accountNumber, "owner1").contains(username) |
+                getResult(command + accountNumber, "owner2").contains(username);
     }
 
     public static boolean jointUserCheck(int accountNumber, String username) {
@@ -178,5 +175,15 @@ public class DatabaseManager {
 
     public static void changePassword(String username, String newPassword) {
         executeCommand("UPDATE users SET password = '" + newPassword + "' WHERE username = '" + username + "'");
+    }
+
+    public static void listTransactions() {
+        ArrayList<String> values = getResult("SELECT value FROM transactions", "value");
+        ArrayList<String> types = getResult("SELECT type FROM transactions", "type");
+        ArrayList<String> accountNumber1 = getResult("SELECT accountNumber1 FROM transactions", "accountNumber1");
+        ArrayList<String> accountNumber2 = getResult("SELECT accountNumber2 FROM transactions", "accountNumber2");
+        for (int i = 0; i < values.size(); i++) {
+            System.out.println(values.get(i) + " " + types.get(i) + " " + accountNumber1.get(i) + " " + accountNumber2.get(i));
+        }
     }
 }

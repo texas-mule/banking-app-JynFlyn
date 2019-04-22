@@ -1,7 +1,6 @@
 package com.ezimmerhanzel;
 
 public class Transaction {
-
     private static void createTransaction(int value, String type, int account1, int account2) {
         DatabaseManager.addTransaction(value, type, account1, account2);
     }

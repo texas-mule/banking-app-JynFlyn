@@ -4,9 +4,8 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-
         DatabaseManager.startDatabase();
-        if(!DatabaseManager.userExists("admin")) {
+        if (!DatabaseManager.userExists("admin")) {
             DatabaseManager.addUser("admin", "admin", "Admin");
             DatabaseManager.addUser("emp", "emp", "Employee");
         }
@@ -15,12 +14,10 @@ public class Main {
         String username;
         String password;
         Bank bank;
-        boolean on = true;
-        while (on) {
+        while (true) {
             System.out.print("\nLogin or Create Account\nusername: ");
             username = scanner.nextLine();
             if (username.toLowerCase().equals("quit")) {
-                on = false;
                 break;
             }
             if (DatabaseManager.userExists(username)) {

@@ -1,6 +1,6 @@
 package com.ezimmerhanzel;
 
-public class Employee{
+public class Employee {
 
     public static void listAccountRequests() {
         DatabaseManager.listAccountRequests();
@@ -23,7 +23,7 @@ public class Employee{
     }
 
     public static void listOptions() {
-        System.out.println("Employee options:\n   List Account Requests\n   Approve Account Request\n" +
-                "   Deny Account Request\n   List Customers\n   List Customer Information");
+        System.out.println("Employee options:\n  1 List Account Requests\n  2 Approve Account Request\n" +
+                "  3 Deny Account Request\n  4 List Customers\n  5 List Customer Information");
     }
 }
