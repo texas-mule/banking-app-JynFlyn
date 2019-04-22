@@ -1,2 +1,2 @@
 # banking-app-JynFlyn
-For now, to run this app, use the "mvn exec:java" command.
+Use the command 'mvn clean compile assembly:single' to get an executable jar file.
