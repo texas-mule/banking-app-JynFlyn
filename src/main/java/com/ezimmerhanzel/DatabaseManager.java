@@ -136,11 +136,30 @@ public class DatabaseManager {
                 .noneMatch(e -> e.equals(Integer.toString(accountNumber)));
     }
 
+    public static boolean checkAccount(int accountNumber) {
+        return getResult("SELECT * FROM account_requests", "accountNumber").stream()
+                .noneMatch(e -> e.equals(Integer.toString(accountNumber)));
+    }
+
     public static void listCustomers() {
         ArrayList<String> customers = getResult("SELECT username FROM users WHERE status = 'Customer'", "username");
         for (String customer : customers) {
             System.out.println(customer);
         }
+    }
+
+    public static boolean hasAccount(int accountNumber, String username) {
+        String command = "SELECT * FROM accounts WHERE accountNumber = ";
+        if(getResult(command + accountNumber, "owner1").isEmpty() &
+                getResult(command + accountNumber, "owner2").isEmpty()) {
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean jointUserCheck(int accountNumber, String username) {
+        return !getResult("SELECT owner2 FROM account WHERE accountNumber = " + accountNumber, "owner2").get(0)
+                .equals(username);
     }
 
     public static void listCustomerInformation(String username) {

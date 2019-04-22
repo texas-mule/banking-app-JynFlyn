@@ -1,6 +1,6 @@
 package com.ezimmerhanzel;
 
-public class Employee implements Listable {
+public class Employee{
 
     public static void listAccountRequests() {
         DatabaseManager.listAccountRequests();

@@ -1,6 +1,6 @@
 package com.ezimmerhanzel;
 
-public class Admin extends Employee implements Listable {
+public class Admin extends Employee{
     public static void editUserName(String currentName, String newName) {
         DatabaseManager.changeName(currentName, newName);
     }

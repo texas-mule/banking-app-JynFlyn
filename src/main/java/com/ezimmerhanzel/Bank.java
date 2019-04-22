@@ -128,17 +128,17 @@ public class Bank {
             case "1":
             case "deposit":
                 System.out.print("Amount to Deposit, Account Number: ");
-                Customer.createTransaction(scanner.nextInt(), "Deposit", scanner.nextInt(), 0);
+                Customer.createTransaction(scanner.nextInt(), "Deposit", scanner.nextInt(), 0, currentUser);
                 break;
             case "2":
             case "withdraw":
                 System.out.print("Amount to Withdraw, Account Number: ");
-                Customer.createTransaction(scanner.nextInt(), "Deposit", scanner.nextInt(), 0);
+                Customer.createTransaction(scanner.nextInt(), "Deposit", scanner.nextInt(), 0, currentUser);
                 break;
             case "3":
             case "transfer funds":
                 System.out.print("Amount to Withdraw, Account Number, Target Account: ");
-                Customer.createTransaction(scanner.nextInt(), "Transfer", scanner.nextInt(), scanner.nextInt());
+                Customer.createTransaction(scanner.nextInt(), "Transfer", scanner.nextInt(), scanner.nextInt(), currentUser);
                 break;
             case "4":
             case "create new account":
