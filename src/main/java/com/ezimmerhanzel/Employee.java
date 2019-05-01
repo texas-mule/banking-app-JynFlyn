@@ -7,6 +7,7 @@ public class Employee {
     }
 
     public static void approveAccount(int accountNumber) {
+        //if
         DatabaseManager.addAccount(accountNumber);
     }
 

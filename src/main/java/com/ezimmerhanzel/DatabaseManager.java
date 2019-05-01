@@ -10,35 +10,38 @@ import java.util.stream.Stream;
 
 public class DatabaseManager {
     public static void startDatabase() {
-        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:database.db");
-             Statement statement = connection.createStatement()) {
-            statement.execute("CREATE TABLE IF NOT EXISTS users" +
-                    "(username TEXT, password TEXT, status TEXT)");
-            statement.execute("CREATE TABLE IF NOT EXISTS accounts" +
-                    "(accountNumber INTEGER, balance INTEGER, owner1 TEXT, owner2 TEXT)");
-            statement.execute("CREATE TABLE IF NOT EXISTS transactions" +
-                    "(value INTEGER, type TEXT, accountNumber1 INTEGER, accountNumber2 INTEGER)");
-            statement.execute("CREATE TABLE IF NOT EXISTS account_requests" +
-                    "(username TEXT, accountNumber INTEGER)");
-            statement.execute("INSERT INTO users (username, password, status) VALUES('', '', '')");
-        } catch (Exception e) {
-            System.out.println("error" + e.getMessage());
+        executeCommand("CREATE TABLE IF NOT EXISTS users" +
+                "(username TEXT, password TEXT, status TEXT)");
+        executeCommand("CREATE TABLE IF NOT EXISTS accounts" +
+                "(accountNumber INTEGER, balance INTEGER)");
+        executeCommand("CREATE TABLE IF NOT EXISTS transactions" +
+                "(value INTEGER, type TEXT, accountNumbers TEXT)");
+        executeCommand("CREATE TABLE IF NOT EXISTS account_requests" +
+                "(username TEXT, accountNumber INTEGER, type TEXT)");
+        executeCommand("CREATE TABLE IF NOT EXISTS linking_table" +
+                "(username TEXT, accountNumber INTEGER)");
+        if (!DatabaseManager.userExists("admin")) {
+            DatabaseManager.addUser("admin", "admin", "admin");
         }
-
+        if (!DatabaseManager.userExists("emp")) {
+            DatabaseManager.addUser("emp", "emp", "employee");
+        }
     }
 
     private static void executeCommand(String command) {
-        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:database.db");
+        try (Connection connection = DriverManager.getConnection("jdbc:postgresql://127.0.0.1:5432/Eric", "postgres",
+                "password");
              Statement statement = connection.createStatement()) {
             statement.execute(command);
         } catch (Exception e) {
-            System.out.println("error" + e.getMessage());
+            e.printStackTrace();
         }
     }
 
 
     private static ArrayList<String> getResult(String command, String column) {
-        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:database.db");
+        try (Connection connection = DriverManager.getConnection("jdbc:postgresql://127.0.0.1:5432/Eric", "postgres",
+                "password");
              Statement statement = connection.createStatement()) {
             ArrayList<String> results = new ArrayList<>();
             ResultSet resultSet = statement.executeQuery(command);
@@ -47,7 +50,7 @@ public class DatabaseManager {
             }
             return results;
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
         return new ArrayList<>();
     }
@@ -60,41 +63,62 @@ public class DatabaseManager {
     public static void addAccountRequest(String username) {
         int accountNumber = new Random().nextInt(99999) + 1;
         if (checkAccounts(accountNumber)) {
-            executeCommand("INSERT INTO account_requests (username, accountNumber) " +
-                    "VALUES('" + username + "', " + Integer.toString(accountNumber) + ")");
+            executeCommand("INSERT INTO account_requests (username, accountNumber, type) " +
+                    "VALUES('" + username + "', " + Integer.toString(accountNumber) + ", 'New')");
             return;
         }
         addAccountRequest(username);
     }
 
+    public static void addAccountRequest(String username, int accountNumber) {
+        executeCommand("INSERT INTO account_requests (username, accountNumber, type) " +
+                "VALUES('" + username + "', " + Integer.toString(accountNumber) + ", 'Joint')");
+    }
+
     public static void addAccount(int accountNumber) {
-        executeCommand("INSERT INTO accounts (accountNumber, balance, owner1, owner2) " + "VALUES(" +
-                Integer.toString(accountNumber) + ", 0, '" + getResult("SELECT * FROM account_requests WHERE accountNumber = "
-                + accountNumber, "username").get(0) + "', 'null')");
-        removeAccountRequest(accountNumber);
+        try {
+            executeCommand("INSERT INTO linking_table (username, accountNumber) " + "VALUES('" +
+                    getResult("SELECT * FROM account_requests WHERE accountNumber = "
+                            + accountNumber, "username").get(0) + "', " + Integer.toString(accountNumber) + ")");
+            executeCommand("INSERT INTO accounts (accountNumber, balance) " + "VALUES(" +
+                    Integer.toString(accountNumber) + ", 0)");
+            removeAccountRequest(accountNumber);
+        } catch (IndexOutOfBoundsException e) {
+            System.out.println("The Account Number you provided could not be found.");
+        }
     }
 
     public static void addTransaction(int value, String type, int accountNumber1, int accountNumber2) {
-        executeCommand("INSERT INTO transactions (value, type, accountNumber1, accountNumber2) " +
+        String accountNumbers;
+        if (accountNumber2 != 0) {
+            accountNumbers = Integer.toString(accountNumber1) + " to " + Integer.toString(accountNumber2);
+        } else {
+            accountNumbers = Integer.toString(accountNumber1);
+        }
+        executeCommand("INSERT INTO transactions (value, type, accountNumbers) " +
                 "VALUES(" + Integer.toString(value) + ", '" + type + "', "
-                + Integer.toString(accountNumber1) + ", " + Integer.toString(accountNumber2) + ")");
+                + accountNumbers + ")");
         changeBalance(value, accountNumber1);
         if (type.equals("Transfer")) {
             changeBalance(Math.abs(value), accountNumber2);
         }
     }
 
-    public static void addJointUser(String username, int accountNumber) {
-        executeCommand("UPDATE accounts SET owner2 = '" + username + "' WHERE accountNumber = " + accountNumber);
-        removeAccountRequest(accountNumber);
-    }
-
     public static void removeAccountRequest(int accountNumber) {
-        executeCommand("DELETE FROM account_requests WHERE accountNumber = " + accountNumber);
+        if (checkAccount(accountNumber)) {
+            executeCommand("DELETE FROM account_requests WHERE accountNumber = " + accountNumber);
+        } else {
+            System.out.println("The Account Number you provided could not be found.");
+        }
     }
 
     public static void removeAccount(int accountNumber) {
-        executeCommand("DELETE FROM accounts WHERE accountNumber=" + accountNumber);
+        if (checkAccount(accountNumber)) {
+            executeCommand("DELETE FROM accounts WHERE accountNumber=" + accountNumber);
+            executeCommand("DELETE FROM linking_table WHERE accountNumber=" +accountNumber);
+        } else {
+            System.out.println("Account doesn't exist");
+        }
     }
 
     public static boolean userExists(String username) {
@@ -123,67 +147,75 @@ public class DatabaseManager {
     }
 
     public static void listAccountRequests() {
-        ArrayList<String> userNames = getResult("SELECT * FROM account_requests", "username");
-        ArrayList<String> passwords = getResult("SELECT * FROM account_requests", "accountNumber");
-        for (int i = 0; i < userNames.size(); i++) {
-            System.out.println(userNames.get(i) + "   " + passwords.get(i));
+        ArrayList<String> usernames = getResult("SELECT * FROM account_requests", "username");
+        ArrayList<String> accountNumbers = getResult("SELECT * FROM account_requests", "accountNumber");
+        ArrayList<String> types = getResult("SELECT * FROM account_requests", "type");
+        for (int i = 0; i < usernames.size(); i++) {
+            System.out.println(types.get(i) + " account request from " + usernames.get(i) + ": " + accountNumbers.get(i));
         }
     }
 
     private static boolean checkAccounts(int accountNumber) {
-        return Stream.concat(getResult("SELECT * FROM account_requests", "accountNumber").stream(),
+        return Stream.concat(getResult("SELECT * FROM accounts", "accountNumber").stream(),
                 getResult("SELECT * FROM account_requests", "accountNumber").stream())
                 .noneMatch(e -> e.equals(Integer.toString(accountNumber)));
     }
 
     public static boolean checkAccount(int accountNumber) {
-        return getResult("SELECT * FROM account_requests", "accountNumber").stream()
-                .noneMatch(e -> e.equals(Integer.toString(accountNumber)));
+        return getResult("SELECT * FROM accounts", "accountNumber").stream()
+                .anyMatch(e -> e.equals(Integer.toString(accountNumber)));
     }
 
     public static void listCustomers() {
         ArrayList<String> customers = getResult("SELECT username FROM users WHERE status = 'Customer'", "username");
-        for (String customer : customers) {
-            System.out.println(customer);
+        ArrayList<String> passwords = getResult("SELECT password FROM users WHERE status = 'Customer'", "password");
+        for (int i = 0; i < customers.size(); i++) {
+            System.out.println("Username: " + customers.get(i) + " Password: " + passwords.get(i));
         }
     }
 
     public static boolean hasAccount(int accountNumber, String username) {
-        String command = "SELECT * FROM accounts WHERE accountNumber = ";
-        return getResult(command + accountNumber, "owner1").contains(username) |
-                getResult(command + accountNumber, "owner2").contains(username);
-    }
-
-    public static boolean jointUserCheck(int accountNumber, String username) {
-        return !getResult("SELECT owner2 FROM account WHERE accountNumber = " + accountNumber, "owner2").get(0)
-                .equals(username);
+        String command = "SELECT * FROM linking_table WHERE accountNumber = ";
+        return getResult(command + accountNumber, "username").contains(username);
     }
 
     public static void listCustomerInformation(String username) {
-        ArrayList<String> accountNumbers = getResult("SELECT * FROM accounts WHERE owner1 = '" + username + "'",
-                "accountNumber");
-        ArrayList<String> balances = getResult("SELECT * FROM accounts WHERE owner1 = '" + username + "'",
-                "balance");
-        for (int i = 0; i < balances.size(); i++) {
-            System.out.println(accountNumbers.get(i) + "   " + balances.get(i));
+        if (userExists(username)) {
+            ArrayList<String> accountNumbers = getResult("SELECT * FROM linking_table WHERE username = '" + username + "'",
+                    "accountNumber");
+            for (String accountNumber : accountNumbers) {
+                System.out.println("Account: " + accountNumber + "   Balance: " +
+                        getResult("SELECT * FROM accounts WHERE accountNumber = " + accountNumber, "balance").get(0));
+            }
+        } else {
+            System.out.println("User not found.");
         }
     }
 
     public static void changeName(String currentName, String newName) {
-        executeCommand("UPDATE users SET username = '" + newName + "' WHERE username = '" + currentName + "'");
+        if (userExists(currentName)) {
+            executeCommand("UPDATE users SET username = '" + newName + "' WHERE username = '" + currentName + "'");
+            System.out.println("username changed");
+        } else {
+            System.out.println("user doesn't exist");
+        }
     }
 
     public static void changePassword(String username, String newPassword) {
-        executeCommand("UPDATE users SET password = '" + newPassword + "' WHERE username = '" + username + "'");
+        if (userExists(username)) {
+            executeCommand("UPDATE users SET password = '" + newPassword + "' WHERE username = '" + username + "'");
+            System.out.println("password changed");
+        } else {
+            System.out.println("user doesn't exist");
+        }
     }
 
     public static void listTransactions() {
         ArrayList<String> values = getResult("SELECT value FROM transactions", "value");
         ArrayList<String> types = getResult("SELECT type FROM transactions", "type");
-        ArrayList<String> accountNumber1 = getResult("SELECT accountNumber1 FROM transactions", "accountNumber1");
-        ArrayList<String> accountNumber2 = getResult("SELECT accountNumber2 FROM transactions", "accountNumber2");
+        ArrayList<String> accountNumber1 = getResult("SELECT accountNumbers FROM transactions", "accountNumbers");
         for (int i = 0; i < values.size(); i++) {
-            System.out.println(values.get(i) + " " + types.get(i) + " " + accountNumber1.get(i) + " " + accountNumber2.get(i));
+            System.out.println(values.get(i) + " " + types.get(i) + " " + accountNumber1.get(i));
         }
     }
 }

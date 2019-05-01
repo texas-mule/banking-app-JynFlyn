@@ -5,10 +5,6 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) {
         DatabaseManager.startDatabase();
-        if (!DatabaseManager.userExists("admin")) {
-            DatabaseManager.addUser("admin", "admin", "Admin");
-            DatabaseManager.addUser("emp", "emp", "Employee");
-        }
 
         Scanner scanner = new Scanner(System.in);
         String username;
@@ -23,9 +19,12 @@ public class Main {
             if (DatabaseManager.userExists(username)) {
                 System.out.print("password: ");
                 password = scanner.nextLine();
-                if (Person.login(username, password)) {
+                if (DatabaseManager.correctPassword(username, password)) {
+                    System.out.println("Welcome to your account, " + username + ".");
                     bank = new Bank(username);
                     bank.run();
+                } else {
+                    System.out.println("Incorrect Password");
                 }
 
             } else {

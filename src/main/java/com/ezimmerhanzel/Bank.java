@@ -18,10 +18,10 @@ public class Bank {
     public void run() {
         while (loggedIn) {
             switch (userStatus) {
-                case "Admin":
+                case "admin":
                     admin();
                     break;
-                case "Employee":
+                case "employee":
                     employee();
                     break;
                 default:
@@ -59,24 +59,43 @@ public class Bank {
                 break;
             case "6":
             case "edit user's name":
-                System.out.print("Current Name, New Name: ");
-                Admin.editUserName(scanner.useDelimiter(" ").next(), scanner.skip(" ").nextLine());
+                System.out.print("Current Name: ");
+                String currentName = scanner.nextLine();
+                System.out.print("New Name: ");
+                String newName = scanner.nextLine();
+                Admin.editUserName(currentName, newName);
                 break;
             case "7":
             case "edit users password":
-                System.out.print("Username, New Password: ");
-                Admin.editUserPassword(scanner.useDelimiter(" ").next(), scanner.skip(" ").nextLine());
+                System.out.print("Username: ");
+                String username = scanner.nextLine();
+                System.out.print("New Password: ");
+                String password = scanner.nextLine();
+                Admin.editUserPassword(username, password);
                 break;
             case "8":
             case "create transaction":
-                System.out.print("Transaction Amount, Transaction Type, Account, Receiving Account (if applicable):");
-                Admin.createTransaction(scanner.useDelimiter("[ \n]").next(), scanner.skip(" ").next(),
-                        scanner.skip(" ").next(), scanner.nextLine());
+                System.out.print("Transaction Type: ");
+                String type = scanner.nextLine().toLowerCase();
+                System.out.print("Amount: ");
+                String amount = scanner.nextLine().toLowerCase();
+                System.out.print("Account Number: ");
+                String accountNumber = scanner.nextLine().toLowerCase();
+                String targetAccount = "0";
+                if (type.equals("transfer")) {
+                    System.out.print("Receiving Account: ");
+                    targetAccount = scanner.nextLine().toLowerCase();
+                }
+                Admin.createTransaction(amount, type, accountNumber, targetAccount);
                 break;
             case "9":
             case "delete account":
                 System.out.print("Account Number: ");
                 Admin.deleteAccount(Integer.parseInt(scanner.nextLine()));
+                break;
+            case "10":
+            case "list transactions":
+                Admin.listTransaction();
                 break;
             case "logout":
                 this.loggedIn = false;
@@ -127,18 +146,32 @@ public class Bank {
         switch (scanner.nextLine().toLowerCase()) {
             case "1":
             case "deposit":
-                System.out.print("Amount to Deposit, Account Number: ");
-                Customer.createTransaction(scanner.nextInt(), "Deposit", scanner.nextInt(), 0, currentUser);
+                System.out.print("Amount to Deposit: ");
+                String value = scanner.nextLine();
+                System.out.println("Account Number: ");
+                String accountNumber = scanner.nextLine();
+                Customer.createTransaction(Integer.parseInt(value), "deposit", Integer.parseInt(accountNumber),
+                        0, currentUser);
                 break;
             case "2":
             case "withdraw":
-                System.out.print("Amount to Withdraw, Account Number: ");
-                Customer.createTransaction(scanner.nextInt(), "Deposit", scanner.nextInt(), 0, currentUser);
+                System.out.print("Amount to Withdraw: ");
+                String value2 = scanner.nextLine();
+                System.out.println("Account Number: ");
+                String accountNumber2 = scanner.nextLine();
+                Customer.createTransaction(Integer.parseInt(value2), "withdrawal", Integer.parseInt(accountNumber2),
+                        0, currentUser);
                 break;
             case "3":
             case "transfer funds":
-                System.out.print("Amount to Withdraw, Account Number, Target Account: ");
-                Customer.createTransaction(scanner.nextInt(), "Transfer", scanner.nextInt(), scanner.nextInt(), currentUser);
+                System.out.print("Amount to Transfer:, Account Number, Target Account: ");
+                String value3 = scanner.nextLine();
+                System.out.println("Account Number: ");
+                String accountNumber3 = scanner.nextLine();
+                System.out.println("Receiving Account: ");
+                String targetAccount = scanner.nextLine();
+                Customer.createTransaction(Integer.parseInt(value3), "transfer", Integer.parseInt(accountNumber3),
+                        Integer.parseInt(targetAccount), currentUser);
                 break;
             case "4":
             case "create new account":
