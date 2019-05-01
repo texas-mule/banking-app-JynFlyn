@@ -41,12 +41,12 @@ public class Bank {
             case "2":
             case "approve account request":
                 System.out.print("Account to Approve: ");
-                Admin.approveAccount(Integer.parseInt(scanner.nextLine()));
+                Admin.approveAccount(scanner.nextLine());
                 break;
             case "3":
             case "deny account request":
                 System.out.print("Account to Deny: ");
-                Admin.denyAccount(Integer.parseInt(scanner.nextLine()));
+                Admin.denyAccount(scanner.nextLine());
                 break;
             case "4":
             case "list customers":
@@ -91,7 +91,7 @@ public class Bank {
             case "9":
             case "delete account":
                 System.out.print("Account Number: ");
-                Admin.deleteAccount(Integer.parseInt(scanner.nextLine()));
+                Admin.deleteAccount(scanner.nextLine());
                 break;
             case "10":
             case "list transactions":
@@ -116,12 +116,12 @@ public class Bank {
             case "2":
             case "approve account request":
                 System.out.print("Account to Approve: ");
-                Employee.approveAccount(Integer.parseInt(scanner.nextLine()));
+                Employee.approveAccount(scanner.nextLine());
                 break;
             case "3":
             case "deny account request":
                 System.out.print("Account to Deny: ");
-                Employee.denyAccount(Integer.parseInt(scanner.nextLine()));
+                Employee.denyAccount(scanner.nextLine());
                 break;
             case "4":
             case "list customers":
@@ -148,30 +148,27 @@ public class Bank {
             case "deposit":
                 System.out.print("Amount to Deposit: ");
                 String value = scanner.nextLine();
-                System.out.println("Account Number: ");
+                System.out.print("Account Number: ");
                 String accountNumber = scanner.nextLine();
-                Customer.createTransaction(Integer.parseInt(value), "deposit", Integer.parseInt(accountNumber),
-                        0, currentUser);
+                Customer.createTransaction(value, "deposit", accountNumber, "0", currentUser);
                 break;
             case "2":
             case "withdraw":
                 System.out.print("Amount to Withdraw: ");
                 String value2 = scanner.nextLine();
-                System.out.println("Account Number: ");
+                System.out.print("Account Number: ");
                 String accountNumber2 = scanner.nextLine();
-                Customer.createTransaction(Integer.parseInt(value2), "withdrawal", Integer.parseInt(accountNumber2),
-                        0, currentUser);
+                Customer.createTransaction(value2, "withdraw", accountNumber2, "0", currentUser);
                 break;
             case "3":
             case "transfer funds":
-                System.out.print("Amount to Transfer:, Account Number, Target Account: ");
+                System.out.print("Amount to Transfer: ");
                 String value3 = scanner.nextLine();
-                System.out.println("Account Number: ");
+                System.out.print("Account Number: ");
                 String accountNumber3 = scanner.nextLine();
-                System.out.println("Receiving Account: ");
+                System.out.print("Receiving Account: ");
                 String targetAccount = scanner.nextLine();
-                Customer.createTransaction(Integer.parseInt(value3), "transfer", Integer.parseInt(accountNumber3),
-                        Integer.parseInt(targetAccount), currentUser);
+                Customer.createTransaction(value3, "transfer", accountNumber3, targetAccount, currentUser);
                 break;
             case "4":
             case "create new account":
@@ -180,7 +177,7 @@ public class Bank {
             case "5":
             case "request access to account":
                 System.out.print("Account Number: ");
-                Customer.requestJointAccount(currentUser, scanner.nextInt());
+                Customer.requestJointAccount(currentUser, scanner.nextLine());
                 break;
             case "6":
             case "list accounts":

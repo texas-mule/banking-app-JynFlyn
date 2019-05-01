@@ -80,8 +80,11 @@ public class DatabaseManager {
             executeCommand("INSERT INTO linking_table (username, accountNumber) " + "VALUES('" +
                     getResult("SELECT * FROM account_requests WHERE accountNumber = "
                             + accountNumber, "username").get(0) + "', " + Integer.toString(accountNumber) + ")");
-            executeCommand("INSERT INTO accounts (accountNumber, balance) " + "VALUES(" +
-                    Integer.toString(accountNumber) + ", 0)");
+            if (getResult("SELECT * FROM account_requests WHERE accountNumber = "
+                    + accountNumber, "type").get(0).equals("New")) {
+                executeCommand("INSERT INTO accounts (accountNumber, balance) " + "VALUES(" +
+                        Integer.toString(accountNumber) + ", 0)");
+            }
             removeAccountRequest(accountNumber);
         } catch (IndexOutOfBoundsException e) {
             System.out.println("The Account Number you provided could not be found.");
@@ -95,17 +98,16 @@ public class DatabaseManager {
         } else {
             accountNumbers = Integer.toString(accountNumber1);
         }
-        executeCommand("INSERT INTO transactions (value, type, accountNumbers) " +
-                "VALUES(" + Integer.toString(value) + ", '" + type + "', "
-                + accountNumbers + ")");
+        executeCommand("INSERT INTO transactions (value, type, accountNumbers) VALUES(" + Integer.toString(Math.abs(value)) +
+                ", '" + type + "', '" + accountNumbers + "')");
         changeBalance(value, accountNumber1);
-        if (type.equals("Transfer")) {
+        if (type.equals("transfer")) {
             changeBalance(Math.abs(value), accountNumber2);
         }
     }
 
     public static void removeAccountRequest(int accountNumber) {
-        if (checkAccount(accountNumber)) {
+        if (!checkAccounts(accountNumber)) {
             executeCommand("DELETE FROM account_requests WHERE accountNumber = " + accountNumber);
         } else {
             System.out.println("The Account Number you provided could not be found.");
@@ -115,7 +117,7 @@ public class DatabaseManager {
     public static void removeAccount(int accountNumber) {
         if (checkAccount(accountNumber)) {
             executeCommand("DELETE FROM accounts WHERE accountNumber=" + accountNumber);
-            executeCommand("DELETE FROM linking_table WHERE accountNumber=" +accountNumber);
+            executeCommand("DELETE FROM linking_table WHERE accountNumber=" + accountNumber);
         } else {
             System.out.println("Account doesn't exist");
         }
@@ -136,7 +138,7 @@ public class DatabaseManager {
         executeCommand("UPDATE accounts SET balance = " + (balance + value) + " WHERE accountNumber = " + accountNumber);
     }
 
-    private static int getBalance(int accountNumber) {
+    public static int getBalance(int accountNumber) {
         return Integer.parseInt(getResult("SELECT balance FROM accounts WHERE accountNumber = +" + accountNumber,
                 "balance").get(0));
     }
@@ -193,11 +195,15 @@ public class DatabaseManager {
     }
 
     public static void changeName(String currentName, String newName) {
-        if (userExists(currentName)) {
+        if (userExists(currentName) & !userExists(newName)) {
             executeCommand("UPDATE users SET username = '" + newName + "' WHERE username = '" + currentName + "'");
+            executeCommand("UPDATE linking_table SET username = '" + newName + "' WHERE username = '" + currentName + "'");
             System.out.println("username changed");
-        } else {
-            System.out.println("user doesn't exist");
+        } else if (!userExists(currentName)) {
+            System.out.println("User doesn't exist.");
+
+        } else if (userExists(newName)) {
+            System.out.println("The new name is already taken.");
         }
     }
 
@@ -206,7 +212,7 @@ public class DatabaseManager {
             executeCommand("UPDATE users SET password = '" + newPassword + "' WHERE username = '" + username + "'");
             System.out.println("password changed");
         } else {
-            System.out.println("user doesn't exist");
+            System.out.println("User doesn't exist.");
         }
     }
 
